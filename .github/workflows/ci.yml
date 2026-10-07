@@ -1,0 +1,33 @@
+name: RecallAI validation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install application and test dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Check dependencies and source files
+        run: |
+          python -m pip check
+          python scripts/audit_publish.py
+      - name: Run actual-model tests and Streamlit page journeys
+        run: python -m pytest -q --tb=short
